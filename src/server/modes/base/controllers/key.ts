@@ -65,8 +65,10 @@ export default class KeyMessageHandler extends System {
       this.validKeyCodes.has(msg.key) &&
       player.alivestatus.current === PLAYERS_ALIVE_STATUSES.ALIVE
     ) {
-      player.keystate[KEY_NAMES[msg.key]] = msg.state;
-      player.keystate.seq = msg.seq;
+      if (msg.key !== KEY_CODES.DOWN || connection.meta.isBot === true) {
+        player.keystate[KEY_NAMES[msg.key]] = msg.state;
+        player.keystate.seq = msg.seq;
+      }
 
       if (
         msg.key !== KEY_CODES.SPECIAL ||

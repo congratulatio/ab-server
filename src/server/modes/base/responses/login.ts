@@ -1,5 +1,5 @@
 import { encodeUpgrades, ServerPackets, SERVER_PACKETS } from '@airbattle/protocol';
-import { RESPONSE_LOGIN, CONNECTIONS_SEND_PACKET } from '@/events';
+import { RESPONSE_LOGIN, CONNECTIONS_SEND_PACKET, BROADCAST_CHAT_SERVER_WHISPER } from '@/events';
 import { System } from '@/server/system';
 import { MainConnectionId } from '@/types';
 
@@ -56,6 +56,27 @@ export default class LoginResponse extends System {
         players,
       } as ServerPackets.Login,
       connectionId
+    );
+
+    this.delay(
+      BROADCAST_CHAT_SERVER_WHISPER,
+      connection.meta.playerId,
+      "🤖 Welcome"
+    );
+    this.delay(
+      BROADCAST_CHAT_SERVER_WHISPER,
+      connection.meta.playerId,
+      "🤖 Humans may only fly forwards here"
+    );
+    this.delay(
+      BROADCAST_CHAT_SERVER_WHISPER,
+      connection.meta.playerId,
+      "🤖 Never backwards"
+    );
+    this.delay(
+      BROADCAST_CHAT_SERVER_WHISPER,
+      connection.meta.playerId,
+      "🤖 Share and enjoy"
     );
   }
 }
