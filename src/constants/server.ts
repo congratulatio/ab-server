@@ -89,3 +89,8 @@ export const SERVER_MODERATION_PANEL_URL_ROUTE = 'admin';
 export const SERVER_WELCOME_MESSAGES = [];
 
 export const SERVER_WELCOME_MESSAGES_DELIMITER = '%split%';
+
+/**
+ * Player-requested horizon X and Y are multiplied by this value
+ */
+export const SERVER_HORIZON_ADJUSTMENT_FACTOR = 1.2;

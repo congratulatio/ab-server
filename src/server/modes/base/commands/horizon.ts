@@ -1,4 +1,4 @@
-import { MAP_SIZE } from '@/constants';
+import { MAP_SIZE, SERVER_HORIZON_ADJUSTMENT_FACTOR } from '@/constants';
 import { BROADCAST_CHAT_SERVER_WHISPER, COMMAND_HORIZON } from '@/events';
 import { System } from '@/server/system';
 import { MainConnectionId } from '@/types';
@@ -46,6 +46,7 @@ export default class HorizonCommandHandler extends System {
         `Position (${~~player.position.x}, ${~~player.position.y}).`,
         `Horizon original (${player.horizon.x}, ${player.horizon.y}), valid (${player.horizon.validX}, ${player.horizon.validY}).`,
         `Viewport horizon (${viewportHorizonX}, ${viewportHorizonY}), position (${viewportX}, ${viewportY}).`,
+        `Horizon adjustment factor is ${SERVER_HORIZON_ADJUSTMENT_FACTOR}.`,
       ].join(' ')
     );
   }

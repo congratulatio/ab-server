@@ -4,6 +4,7 @@ import {
   COLLISIONS_OBJECT_TYPES,
   MAP_SIZE,
   SERVER_MAX_VIEWPORT_RATIO,
+  SERVER_HORIZON_ADJUSTMENT_FACTOR,
 } from '@/constants';
 import {
   VIEWPORTS_CREATE,
@@ -93,6 +94,8 @@ export default class GameViewports extends System {
     let x = horizonX;
     let y = horizonY;
 
+    this.log.debug(`Update player id${playerId} requested horizon of (${x}, ${y})`);
+
     if (horizonX / horizonY > SERVER_MAX_VIEWPORT_RATIO) {
       x = horizonY * SERVER_MAX_VIEWPORT_RATIO;
     } else if (horizonY / horizonX > SERVER_MAX_VIEWPORT_RATIO) {
@@ -108,8 +111,8 @@ export default class GameViewports extends System {
       y *= factor;
     }
 
-    x = Math.round(x);
-    y = Math.round(y);
+    x = Math.round(x * SERVER_HORIZON_ADJUSTMENT_FACTOR);
+    y = Math.round(y * SERVER_HORIZON_ADJUSTMENT_FACTOR);
 
     player.horizon.validX = x;
     player.horizon.validY = y;
