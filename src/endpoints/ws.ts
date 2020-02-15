@@ -270,7 +270,12 @@ export default class WsEndpoint {
       })
 
       .get('/', res => {
-        res.end(`{"players":${this.app.storage.playerList.size}}`);
+        res.end(
+          JSON.stringify({
+            players: this.app.storage.playerList.size,
+            bots: this.app.storage.botIdList.size,
+          })
+        );
       })
 
       .any('*', res => {
