@@ -1,4 +1,9 @@
-import { GAME_TYPES, PLAYER_LEVEL_UPDATE_TYPES } from '@airbattle/protocol';
+import {
+  GAME_TYPES,
+  PLAYER_LEVEL_UPDATE_TYPES,
+  SERVER_PACKETS,
+  ServerPackets,
+} from '@airbattle/protocol';
 import { Polygon } from 'collisions';
 import {
   CHAT_USERNAME_PLACEHOLDER,
@@ -41,6 +46,7 @@ import {
   TIMEOUT_ACK,
   TIMEOUT_BACKUP,
   VIEWPORTS_CREATE,
+  CONNECTIONS_SEND_PACKET,
 } from '@/events';
 import { CHANNEL_CONNECT_PLAYER, CHANNEL_MUTE } from '@/server/channels';
 import AliveStatus from '@/server/components/alive-status';
@@ -423,6 +429,29 @@ export default class GamePlayersConnect extends System {
       player.horizon.validX,
       player.horizon.validY
     );
+
+    this.emit(
+      CONNECTIONS_SEND_PACKET,
+      {
+        c: SERVER_PACKETS.PING_RESULT,
+        ping: 1,
+        playerstotal: 0,
+        playersgame: 0,
+      } as ServerPackets.PingResult,
+      connectionId
+    );
+
+    const packet = new Uint8Array([100, 1, 2, 3, 4, 5]).buffer;
+
+    try {
+      if (this.storage.connectionList.has(connectionId)) {
+        if (!this.storage.connectionList.get(connectionId).send(packet, true, true)) {
+          this.log.warn(`WS send failed (connection id${connectionId}).`);
+        }
+      }
+    } catch (err) {
+      this.log.error('Send packet error:', err.stack);
+    }
 
     /**
      * Broadcasts.
