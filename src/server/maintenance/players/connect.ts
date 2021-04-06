@@ -92,6 +92,7 @@ import Velocity from '../../components/velocity';
 import Wins from '../../components/wins';
 import Entity from '../../entity';
 import { System } from '../../system';
+import Client from '../../components/client';
 
 export default class GamePlayersConnect extends System {
   private framesPassedSinceLogin = 0;
@@ -180,6 +181,7 @@ export default class GamePlayersConnect extends System {
       new AliveStatus(PLAYERS_ALIVE_STATUSES.DEFAULT),
       new Bot(mainConnection.isBot),
       new Captures(),
+      new Client(mainConnection.headers.origin),
       new Damage(),
       new Deaths(),
       new Delayed(),
@@ -253,6 +255,7 @@ export default class GamePlayersConnect extends System {
       playerId,
       name: uniqueName,
       ip: player.ip.current,
+      origin: mainConnection.headers.origin,
       connectionId,
     });
 

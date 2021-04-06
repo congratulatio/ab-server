@@ -51,6 +51,7 @@ import {
 } from '../constants';
 import { has } from '../support/objects';
 import { IPv4 } from '../types';
+import Flag from '../server/components/flag';
 
 export interface GameServerConfigInterface {
   /**
@@ -354,6 +355,11 @@ export interface GameServerConfigInterface {
      * Auto add prefix to the bot name.
      */
     prefix: string;
+
+    /**
+     * Override player flag for bots.
+     */
+    flag: Flag | undefined;
   };
 }
 
@@ -442,6 +448,14 @@ const parseServerPath = (value: string | undefined, def = '/'): string => {
   }
 
   return result;
+};
+
+const parseFlag = (value: string | undefined): Flag | undefined => {
+  if (typeof value === 'string' && value.length > 0) {
+    return new Flag(value);
+  }
+
+  return undefined;
 };
 
 let logsPath = process.env.LOG_FILE || '';
@@ -612,6 +626,7 @@ const config: GameServerConfigInterface = {
     enabled: boolValue(process.env.WHITELIST_ENABLED, BOTS_IP_LIST_ENABLED),
     ipList: parseBotsIP(process.env.BOTS_IP, BOTS_DEFAULT_IP_LIST),
     prefix: strValue(process.env.BOTS_NAME_PREFIX, BOTS_DEFAULT_NAME_PREFIX),
+    flag: parseFlag(process.env.BOTS_FLAG_OVERRIDE),
   },
 
   ctf: {

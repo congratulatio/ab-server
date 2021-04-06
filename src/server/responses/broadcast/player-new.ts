@@ -23,31 +23,48 @@ export default class PlayerNewBroadcast extends System {
     }
 
     const player = this.storage.playerList.get(playerId);
-    const playerConnectionId = this.storage.playerMainConnectionList.get(playerId);
-    const recipients = [...this.storage.mainConnectionIdList];
 
-    this.emit(
-      CONNECTIONS_SEND_PACKETS,
-      {
-        c: SERVER_PACKETS.PLAYER_NEW,
-        id: player.id.current,
-        status: player.alivestatus.current,
-        name: player.name.current,
-        type: player.planetype.current,
-        team: player.team.current,
-        posX: player.position.x,
-        posY: player.position.y,
-        rot: player.rotation.current,
-        flag: player.flag.code,
-        upgrades: encodeUpgrades(
-          player.upgrades.speed,
-          ~~player.shield.current,
-          ~~player.inferno.current
-        ),
-        isBot: player.bot.current,
-      } as ServerPackets.PlayerNew,
-      recipients,
-      [playerConnectionId]
-    );
+    this.storage.playerList.forEach(recipientPlayer => {
+      if (player.id.current === recipientPlayer.id.current) {
+        return;
+      }
+
+      if (!this.storage.playerMainConnectionList.has(recipientPlayer.id.current)) {
+        return;
+      }
+
+      const recipientPlayerConnectionId = this.storage.playerMainConnectionList.get(
+        recipientPlayer.id.current
+      );
+
+      let flag = player.flag.code;
+
+      if (this.config.bots.flag && player.bot.current && recipientPlayer.client.extraFlags) {
+        flag = this.config.bots.flag.code;
+      }
+
+      this.emit(
+        CONNECTIONS_SEND_PACKETS,
+        {
+          c: SERVER_PACKETS.PLAYER_NEW,
+          id: player.id.current,
+          status: player.alivestatus.current,
+          name: player.name.current,
+          type: player.planetype.current,
+          team: player.team.current,
+          posX: player.position.x,
+          posY: player.position.y,
+          rot: player.rotation.current,
+          flag,
+          upgrades: encodeUpgrades(
+            player.upgrades.speed,
+            ~~player.shield.current,
+            ~~player.inferno.current
+          ),
+          isBot: player.bot.current,
+        } as ServerPackets.PlayerNew,
+        recipientPlayerConnectionId
+      );
+    });
   }
 }

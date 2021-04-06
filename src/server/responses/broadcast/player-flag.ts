@@ -20,6 +20,13 @@ export default class PlayerFlagBroadcast extends System {
   onPlayerFlag(playerId: PlayerId): void {
     const player = this.storage.playerList.get(playerId);
 
+    if (player.bot.current && this.config.bots.flag) {
+      /**
+       * If bot player, don't broadcast new flag if it's configured for override.
+       */
+      return;
+    }
+
     this.emit(
       CONNECTIONS_SEND_PACKETS,
       {

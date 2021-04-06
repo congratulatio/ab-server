@@ -45,6 +45,18 @@ export default class LoginResponse extends System {
     let player: Player = playersIterator.next().value;
 
     while (player !== undefined) {
+      let flag = player.flag.code;
+
+      if (player.bot.current) {
+        bots.push({
+          id: player.id.current,
+        });
+
+        if (this.config.bots.flag && loggedInPlayer.client.extraFlags) {
+          flag = this.config.bots.flag.code;
+        }
+      }
+
       players.push({
         id: player.id.current,
         status: player.alivestatus.current,
@@ -55,19 +67,13 @@ export default class LoginResponse extends System {
         posX: player.position.x,
         posY: player.position.y,
         rot: player.rotation.current,
-        flag: player.flag.code,
+        flag,
         upgrades: encodeUpgrades(
           player.upgrades.speed,
           ~~player.shield.current,
           ~~player.inferno.current
         ),
       });
-
-      if (player.bot.current) {
-        bots.push({
-          id: player.id.current,
-        });
-      }
 
       player = playersIterator.next().value;
     }

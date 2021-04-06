@@ -48,6 +48,12 @@ Use the [commands](./commands#server-bot-add-ip) to update the list without rest
 
 Example: `"127.0.0.1,127.0.0.2,127.0.0.3"` will be parsed as `["127.0.0.1", "127.0.0.2", "127.0.0.3"]`.
 
+### BOTS_FLAG_OVERRIDE
+
+Default: *undefined*
+
+Override the player flag for bots. This is expected to be a flag code that is otherwise unavailable to players, and will only be displayed to clients that support such extra flag codes.
+
 ### BOTS_NAME_PREFIX
 
 Default: `""`
