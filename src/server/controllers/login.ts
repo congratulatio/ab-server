@@ -124,6 +124,14 @@ export default class LoginMessageHandler extends System {
             validSessionData = false;
           }
         }
+
+        if (session.test) {
+          connection.headers.origin = 'https://test.airmash.online';
+        }
+
+        if (session.bot === false) {
+          connection.isBot = false;
+        }
       } catch (e) {
         validSessionData = false;
       }
