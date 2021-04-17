@@ -1,5 +1,10 @@
 import { existsSync } from 'fs';
-import { marshalServerMessage, ProtocolPacket } from '@airbattle/protocol';
+import {
+  marshalServerMessage,
+  ProtocolPacket,
+  ServerPackets,
+  SERVER_PACKETS,
+} from '@airbattle/protocol';
 import EventEmitter from 'eventemitter3';
 import uws, { DISABLED } from 'uWebSockets.js';
 import { GameServerConfigInterface } from '../config';
@@ -43,6 +48,25 @@ import {
 } from '../types';
 import Admin from './admin';
 import ConnectionsStorage from './storage';
+
+const readRequest = (res: uws.HttpResponse, cb: Function, errCb: () => void, log: Logger): void => {
+  let buffer = Buffer.alloc(0);
+
+  res.onAborted(errCb);
+
+  res.onData((ab, isLast) => {
+    buffer = Buffer.concat([buffer, Buffer.from(ab)]);
+
+    if (isLast) {
+      try {
+        cb(buffer.toString());
+      } catch (err) {
+        log.error('Reading request error: %o', { error: err.stack });
+        res.close();
+      }
+    }
+  });
+};
 
 export default class WsEndpoint {
   private app: GameServerBootstrap;
@@ -531,6 +555,44 @@ export default class WsEndpoint {
     });
   }
 
+  protected async onBroadcastPost(res: uws.HttpResponse, requestData: string): Promise<void> {
+    res.aborted = false;
+
+    res.onAborted(() => {
+      res.aborted = true;
+    });
+
+    let data;
+
+    try {
+      data = JSON.parse(requestData);
+    } catch (err) {
+      this.log.error('JSON parse error on broadcast endpoint: %o', { error: err.stack });
+
+      if (!res.aborted) {
+        res.writeStatus('400 Bad Request').end('JSON parse error\n');
+      }
+    }
+
+    if (data && data.type && data.data && typeof data.type === 'number') {
+      this.events.emit(
+        CONNECTIONS_SEND_PACKETS,
+        {
+          c: SERVER_PACKETS.SERVER_CUSTOM,
+          type: data.type,
+          data: JSON.stringify(data.data),
+        } as ServerPackets.ServerCustom,
+        [...this.storage.mainConnectionIdList]
+      );
+
+      if (!res.aborted) {
+        res.end('Broadcast sent\n');
+      }
+    } else if (!res.aborted) {
+      res.writeStatus('400 Bad Request').end('Invalid broadcast data\n');
+    }
+  }
+
   private bindHttpRoutes(): void {
     this.uws
       .get(`${this.path}/ping`, res => {
@@ -546,6 +608,39 @@ export default class WsEndpoint {
           .end(
             `{"players":${this.storage.playerList.size},"bots":${this.storage.botIdList.size},"spectators":${this.storage.playerInSpecModeList.size}${gameModeResponse}}`
           );
+      })
+
+      .post(`${this.path}/broadcast`, (res, req) => {
+        let ip = decodeIPv4(res.getRemoteAddress());
+
+        if (req.getHeader('x-forwarded-for') !== '') {
+          ip = req.getHeader('x-forwarded-for');
+        } else if (req.getHeader('x-real-ip') !== '') {
+          ip = req.getHeader('x-real-ip');
+        }
+
+        if (!this.storage.ipBotList.has(ip)) {
+          res.writeStatus('403 Forbidden').end('');
+
+          return;
+        }
+
+        if (req.getHeader('content-type') !== 'application/json') {
+          res.writeStatus('400 Bad Request').end('Invalid content type\n');
+
+          return;
+        }
+
+        readRequest(
+          res,
+          (requestData: string) => {
+            this.onBroadcastPost(res, requestData);
+          },
+          () => {
+            this.log.error('Failed to parse /actions POST.');
+          },
+          this.log
+        );
       })
 
       .any(`${this.path}/*`, res => {
